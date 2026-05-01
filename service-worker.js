@@ -1,7 +1,6 @@
-self.addEventListener("install", event => {
-    event.waitUntil(caches.open("app").then(cache => cache.add("./")));
+self.addEventListener("install", e=>{
+ e.waitUntil(caches.open("app").then(c=>c.add("./")));
 });
-
-self.addEventListener("fetch", event => {
-    event.respondWith(caches.match(event.request).then(r => r || fetch(event.request)));
+self.addEventListener("fetch", e=>{
+ e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
 });

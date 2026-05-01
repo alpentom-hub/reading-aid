@@ -10,80 +10,40 @@
 <meta name="theme-color" content="#000000">
 
 <style>
-body {
-    margin: 0;
-    background: black;
-    color: white;
-    font-family: -apple-system, sans-serif;
-    overflow: hidden;
-}
-
-#cameraContainer {
-    position: relative;
-    width: 100%;
-    height: 60vh;
-    overflow: hidden;
-    background: black;
-}
-
+body { margin:0; background:black; color:white; font-family:-apple-system; overflow:hidden; }
+#cameraContainer { position:relative; width:100%; height:60vh; overflow:hidden; background:black; }
 #video {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: translate(-50%, -50%) scale(1);
+ position:absolute; top:50%; left:50%; width:100%; height:100%;
+ object-fit:cover; transform:translate(-50%,-50%) scale(1);
 }
-
 #flowBand {
-    position: absolute;
-    top: 45%;
-    left: 5%;
-    width: 90%;
-    height: 40px;
-    background: rgba(255,255,0,0.08);
-    border-top: 2px solid rgba(255,255,0,0.6);
-    border-bottom: 2px solid rgba(255,255,0,0.6);
-    pointer-events: none;
+ position:absolute; top:45%; left:5%; width:90%; height:40px;
+ background:rgba(255,255,0,0.08);
+ border-top:2px solid rgba(255,255,0,0.6);
+ border-bottom:2px solid rgba(255,255,0,0.6);
 }
-
-.controls { padding: 10px; }
-
-.buttonRow {
-    display: flex;
-    gap: 8px;
-}
-
+.controls { padding:10px; }
+.buttonRow { display:flex; gap:8px; }
 .buttonRow button {
-    flex: 1;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    background: #0a84ff;
-    color: white;
+ flex:1; padding:12px; border-radius:10px;
+ border:none; background:#0a84ff; color:white;
 }
-
-input[type=range] {
-    width: 100%;
-    touch-action: pan-y;
-}
+input[type=range]{ width:100%; touch-action:pan-y; }
 </style>
 </head>
 
 <body>
 
 <div id="cameraContainer">
-    <video id="video" autoplay playsinline></video>
-    <div id="flowBand"></div>
+ <video id="video" autoplay playsinline></video>
+ <div id="flowBand"></div>
 </div>
 
 <div class="controls">
-
 <div class="buttonRow">
-    <button onclick="toggleFlow()">📖</button>
-    <button onclick="toggleContrast()">⚫⚪</button>
-    <button onclick="switchCamera()">🔄</button>
+ <button onclick="toggleFlow()">📖</button>
+ <button onclick="toggleContrast()">⚫⚪</button>
+ <button onclick="switchCamera()">🔄</button>
 </div>
 
 <label>Zoom
@@ -93,42 +53,48 @@ input[type=range] {
 <label>Dioptrien
 <input type="range" min="0" max="3" step="0.1" value="0" oninput="setDiopter(this.value)">
 </label>
-
 </div>
 
 <script>
-let video = document.getElementById("video");
-let flowBand = document.getElementById("flowBand");
+const video=document.getElementById('video');
+let baseZoom=1,diopter=0,flow=true,stream=null,usingBackCamera=true;
 
-let baseZoom = 1;
-let diopter = 0;
-let flow = true;
-let stream;
+async function initCamera(){ await startCamera(true); }
 
-async function initCamera() {
-    stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
+async function startCamera(useBack){
+ if(stream){ stream.getTracks().forEach(t=>t.stop()); }
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({
+   video:{ facingMode: useBack?{exact:"environment"}:"user" },
+   audio:false
+  });
+ }catch(e){
+  stream=await navigator.mediaDevices.getUserMedia({
+   video:{ facingMode: useBack?"environment":"user" },
+   audio:false
+  });
+ }
+ usingBackCamera=useBack;
+ video.srcObject=stream;
 }
 
-function apply() {
-    const zoom = baseZoom + diopter * 0.22;
-    video.style.transform = `translate(-50%, -50%) scale(${zoom})`;
+async function switchCamera(){ await startCamera(!usingBackCamera); }
+
+function apply(){
+ const zoom=baseZoom+diopter*0.22;
+ video.style.transform=`translate(-50%,-50%) scale(${zoom})`;
 }
 
-function setZoom(v) { baseZoom = parseFloat(v); apply(); }
-function setDiopter(v) { diopter = parseFloat(v); apply(); }
+function setZoom(v){ baseZoom=parseFloat(v); apply(); }
+function setDiopter(v){ diopter=parseFloat(v); apply(); }
 
-function toggleFlow() {
-    flow = !flow;
-    flowBand.style.display = flow ? "block" : "none";
+function toggleFlow(){
+ flow=!flow;
+ document.getElementById("flowBand").style.display=flow?"block":"none";
 }
 
-function toggleContrast() {
-    video.style.filter = video.style.filter ? "" : "contrast(2.2) grayscale(1)";
-}
-
-function switchCamera() {
-    alert("Browser-Limit: Kamerawechsel eingeschränkt.");
+function toggleContrast(){
+ video.style.filter = video.style.filter ? "" : "contrast(2.2) grayscale(1)";
 }
 
 initCamera();
@@ -136,8 +102,8 @@ apply();
 </script>
 
 <script>
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
+if("serviceWorker" in navigator){
+ navigator.serviceWorker.register("service-worker.js");
 }
 </script>
 
